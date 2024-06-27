@@ -12,6 +12,14 @@ from dgl import DGLGraph
 import time
 
 
+TARGET_NODE_NUM = 17108 #cora:1408 citeseer:2325
+NODE_NUM = 19717 #cora:2708 citeseer:3327 pubmed:19717
+SHADOW_NODE_NUM = 2609 #cora:1300 citeseer:1002 pubmed:2609
+SUB_ATTACK_2_NODE_NUM = 2609 #cora:653 citeseer:506 pubmed:521
+SUB_ATTACK_3_NODE_NUM = 2609 #cora:647 citeseer:496 pubmed:2558
+LABEL_NUM = 3 #cora:7 citeseer:6 pubmed:3
+FEATURE_NUM = 500 #cora:1433 citeseer:3703 pubmed:500
+
 
 class Net_sub_attack_2(nn.Module):
     def __init__(self):
@@ -136,7 +144,7 @@ def attack6(dataset_name, attack_node_arg, cuda):
     
     ##read target graph
     shadow_graph_index = []
-    fileObject = open('./data/pubmed/protential_1300_shadow_graph_index.txt', 'r')
+    fileObject = open('./data/attack3_shadow_graph/pubmed/protential_1300_shadow_graph_index.txt', 'r')
     contents = fileObject.readlines()
     for ip in contents:
         shadow_graph_index.append(int(ip))
@@ -171,12 +179,13 @@ def attack6(dataset_name, attack_node_arg, cuda):
     ##train sub attack-2 model
     
     data = citegrh.load_pubmed()
-    features_np = data.features
-    labels = data.labels
-    train_mask = data.train_mask
-    test_mask = data.test_mask
-    g = nx.to_numpy_array(data.graph)
-    g_matrix = np.asmatrix(g.copy())
+    g = data[0]
+    features = g.ndata['feat']
+    labels = g.ndata['label']
+    train_mask = g.ndata['train_mask']
+    test_mask = g.ndata['test_mask']
+    networkx_g = g.to_networkx()
+    g_matrix = np.asmatrix(networkx_g.copy())
     
     for i in sub_shadow_graph_index_attack_2:
         test_mask[i] = 1
@@ -196,8 +205,9 @@ def attack6(dataset_name, attack_node_arg, cuda):
     
     syn_features = th.FloatTensor(syn_features_np)
     
-    G = data.graph
-    g_numpy = nx.to_numpy_array(data.graph)
+    networkx_g = g.to_networkx()
+    g_numpy = nx.to_numpy_array(networkx_g)
+
     shadow_graph_index_attack_2_A = g_numpy[sub_shadow_graph_index_attack_2]
     shadow_graph_attack_2_numpy = shadow_graph_index_attack_2_A[:,sub_shadow_graph_index_attack_2]
     shadow_graph_attack_2 = nx.from_numpy_matrix(shadow_graph_attack_2_numpy)
@@ -223,8 +233,8 @@ def attack6(dataset_name, attack_node_arg, cuda):
     #train target model
     
     sub_shadow_graph_index_attack_2_labels = th.LongTensor(labels[sub_shadow_graph_index_attack_2])
-    sub_shadow_graph_index_attack_2_train_mask = th.ByteTensor(train_mask[sub_shadow_graph_index_attack_2])
-    sub_shadow_graph_index_attack_2_test_mask = th.ByteTensor(test_mask[sub_shadow_graph_index_attack_2])
+    sub_shadow_graph_index_attack_2_train_mask = th.BoolTensor(train_mask[sub_shadow_graph_index_attack_2])
+    sub_shadow_graph_index_attack_2_test_mask = th.BoolTensor(test_mask[sub_shadow_graph_index_attack_2])
     
     # =============================================================================
     # net_sub_attack_2 = Net_sub_attack_2()
@@ -400,8 +410,9 @@ def attack6(dataset_name, attack_node_arg, cuda):
     test_mask = data.test_mask
     
     
-    G = data.graph
-    g_numpy = nx.to_numpy_array(data.graph)
+    networkx_g = g.to_networkx()
+    g_numpy = nx.to_numpy_array(networkx_g)
+
     shadow_graph_index_attack_2_A = g_numpy[sub_shadow_graph_index_attack_2]
     shadow_graph_attack_2_numpy = shadow_graph_index_attack_2_A[:,sub_shadow_graph_index_attack_2]
     shadow_graph_attack_2 = nx.from_numpy_matrix(shadow_graph_attack_2_numpy)
@@ -538,8 +549,8 @@ def attack6(dataset_name, attack_node_arg, cuda):
     
     target_graph_index_query = th.LongTensor(labels_query.detach().numpy()[target_graph_index])
     
-    G = data.graph
-    g_numpy = nx.to_numpy_array(data.graph)
+    networkx_g = g.to_networkx()
+    g_numpy = nx.to_numpy_array(networkx_g)
     
     target_graph_index_g_A = g_numpy[target_graph_index]
     target_graph_index_g = target_graph_index_g_A[:,target_graph_index]

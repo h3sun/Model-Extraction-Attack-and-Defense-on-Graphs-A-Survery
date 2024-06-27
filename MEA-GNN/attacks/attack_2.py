@@ -61,11 +61,11 @@ def load_data(dataset_name):
         data = citegrh.load_citeseer()
     if dataset_name == 'pubmed':
         data = citegrh.load_pubmed()
-    features = th.FloatTensor(data.features)
-    labels = th.LongTensor(data.labels)
-    train_mask = th.ByteTensor(data.train_mask)
-    test_mask = th.ByteTensor(data.test_mask)
-    g = DGLGraph(data.graph)
+    g = data[0]
+    features = th.FloatTensor(g.ndata['feat'])
+    labels = th.LongTensor(g.ndata['label'])
+    train_mask = th.BoolTensor(g.ndata['train_mask'])
+    test_mask = th.BoolTensor(g.ndata['test_mask'])
     return g, features, labels, train_mask, test_mask
 
 class Gcn_Net(nn.Module):
@@ -107,18 +107,18 @@ def attack2(dataset_name, attack_node_arg, cuda):
     
     #train target model:
     
-    gcn_msg = fn.copy_src(src='h', out='m')
+    gcn_msg = fn.copy_u(u='h', out='m')
     gcn_reduce = fn.sum(msg='m', out='h')
     
     g, features, labels, train_mask, test_mask = load_data(dataset_name)
     
     # graph preprocess and calculate normalization factor
-    g = data.graph
+    networkx_g = g.to_networkx()
     # add self loop
     if 1:
-        g.remove_edges_from(nx.selfloop_edges(g))
-        g.add_edges_from(zip(g.nodes(), g.nodes()))
-    g = DGLGraph(g)
+        networkx_g.remove_edges_from(nx.selfloop_edges(networkx_g))
+        networkx_g.add_edges_from(zip(networkx_g.nodes(), networkx_g.nodes()))
+
     n_edges = g.number_of_edges()
     # normalization
     degs = g.in_degrees().float()
@@ -159,11 +159,14 @@ def attack2(dataset_name, attack_node_arg, cuda):
             attack_nodes.append(candidate_node)
     
     
-    features_np = data.features
-    labels = data.labels
-    train_mask = data.train_mask
-    test_mask = data.test_mask
-    g = nx.to_numpy_array(data.graph)
+    g = data[0]
+    features_np = g.ndata['feat']
+    features = th.FloatTensor(g.ndata['feat'])
+    labels = th.LongTensor(g.ndata['label'])
+    train_mask = th.BoolTensor(g.ndata['train_mask'])
+    test_mask = th.BoolTensor(g.ndata['test_mask'])
+    networkx_g = g.to_networkx()
+    g = nx.to_numpy_array(networkx_g)
     g_matrix = np.asmatrix(g.copy())
     
     test_num = 0
@@ -187,7 +190,7 @@ def attack2(dataset_name, attack_node_arg, cuda):
     
     
     features = th.FloatTensor(features_np)
-    g_graph = DGLGraph(g)
+    g_graph = data[0]
     
     #=================Generate Label===================================================
     logits_query = gcn_Net(g_graph, features)
@@ -227,8 +230,8 @@ def attack2(dataset_name, attack_node_arg, cuda):
     #train target model
     
     labels = th.LongTensor(labels)
-    train_mask = th.ByteTensor(train_mask)
-    test_mask = th.ByteTensor(test_mask)
+    train_mask = th.BoolTensor(train_mask)
+    test_mask = th.BoolTensor(test_mask)
     
     net_attack = Net_attack(node_number, label_number)
     

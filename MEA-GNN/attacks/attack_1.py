@@ -73,15 +73,15 @@ def attack1(dataset_name, attack_node_arg, cuda):
     
     
     # get their features
-    features = data.features
-    features_numpy = features
-    labels = data.labels
+
+    g = data[0]
+    features = g.ndata['feat']
+    labels = g.ndata['label']
+    train_mask = g.ndata['train_mask']
+    test_mask = g.ndata['test_mask']
     labels_numpy = labels
-    train_mask = data.train_mask
-    test_mask = data.test_mask
-    
-    #features = torch.FloatTensor(data.features)
-    #labels = torch.LongTensor(data.labels)
+
+
     
     attack_features = torch.FloatTensor(features[attack_nodes])
     test_features = torch.FloatTensor(features[testing_nodes])
@@ -95,7 +95,7 @@ def attack1(dataset_name, attack_node_arg, cuda):
             test_mask[i] = 1
             train_mask[i] = 0
     
-    sub_test_mask = torch.ByteTensor(test_mask)
+    sub_test_mask = torch.BoolTensor(test_mask)
     
     # get their labels
     my_file2 = open(filename2,"r")
@@ -147,12 +147,13 @@ def attack1(dataset_name, attack_node_arg, cuda):
     
     #build GCN
     
+    g = data[0]
     
-    
-    features = torch.FloatTensor(data.features)
-    labels = torch.LongTensor(data.labels)
+    features = torch.FloatTensor(g.ndata['feat'])
+    labels = torch.LongTensor(g.ndata['label'])
     #g = DGLGraph(data.graph)
-    g_numpy = nx.to_numpy_array(data.graph)
+    networkx_g = g.to_networkx()
+    g_numpy = nx.to_numpy_array(networkx_g)
     sub_g_b = nx.from_numpy_matrix(g_numpy)
     
     # graph preprocess and calculate normalization factor
@@ -230,7 +231,7 @@ class GCNLayer(torch.nn.Module):
         # Creating a local scope so that all the stored ndata and edata
         # (such as the `'h'` ndata below) are automatically popped out
         # when the scope exits.
-        gcn_msg = fn.copy_src(src='h', out='m')
+        gcn_msg = fn.copy_u(u='h', out='m')
         gcn_reduce = fn.sum(msg='m', out='h')
         with g.local_scope():
             g.ndata['h'] = feature

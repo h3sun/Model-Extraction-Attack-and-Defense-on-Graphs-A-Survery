@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dgl import DGLGraph
 
-gcn_msg = fn.copy_src(src='h', out='m')
+gcn_msg = fn.copy_u(u='h', out='m')
 gcn_reduce = fn.sum(msg='m', out='h')
 
 import numpy as np
@@ -65,11 +65,11 @@ class Net2(nn.Module):
 
 def load_cora_data():
     data = citegrh.load_cora()
-    features = th.FloatTensor(data.features)
-    labels = th.LongTensor(data.labels)
-    train_mask = th.ByteTensor(data.train_mask)
-    test_mask = th.ByteTensor(data.test_mask)
-    g = DGLGraph(data.graph)
+    g = data[0]
+    features = th.FloatTensor(g.ndata['feat'])
+    labels = th.LongTensor(g.ndata['label'])
+    train_mask = th.BoolTensor(g.ndata['train_mask'])
+    test_mask = th.BoolTensor(g.ndata['test_mask'])
     return g, features, labels, train_mask, test_mask
 
 def evaluate(model, g, features, labels, mask):
@@ -108,24 +108,27 @@ def attack4(dataset_name, attack_node_arg, cuda):
         data = citegrh.load_pubmed()
         data1 = citegrh.load_pubmed()
         model_path = './models/attack_3_subgraph_shadow_model_pubmed_8044.pkl'
-    features = data.features
-    labels = data.labels
-    train_mask = data.train_mask
-    test_mask = data.test_mask
+    g = data[0]
+    features = th.FloatTensor(g.ndata['feat'])
+    labels = th.LongTensor(g.ndata['label'])
+    train_mask = th.BoolTensor(g.ndata['train_mask'])
+    test_mask = th.BoolTensor(g.ndata['test_mask'])
     
-    G = data.graph
-    g_numpy = nx.to_numpy_array(data.graph)
+    networkx_g = g.to_networkx()
+    g_numpy = nx.to_numpy_array(networkx_g)
     g_matrix = np.asmatrix(g_numpy.copy())
     
+
+
     sub_graph_index_b = []
-    fileObject = open('./data/' + dataset_name + '/target_graph_index.txt', 'r')
+    fileObject = open('./data/attack4/' + dataset_name + '/target_graph_index.txt', 'r')
     contents = fileObject.readlines()
     for ip in contents:
         sub_graph_index_b.append(int(ip))
     fileObject.close()
     
     sub_graph_index_a = []
-    fileObject = open('./data/' + dataset_name + '/protential_1200_shadow_graph_index.txt', 'r')
+    fileObject = open('./data/attack4/' + dataset_name + '/protential_1200_shadow_graph_index.txt', 'r')
     contents = fileObject.readlines()
     for ip in contents:
         sub_graph_index_a.append(int(ip))
@@ -257,8 +260,8 @@ def attack4(dataset_name, attack_node_arg, cuda):
     
     sub_features_b = th.FloatTensor(sub_graph_features_b)
     sub_labels_b = th.LongTensor(sub_graph_labels_b)
-    sub_train_mask_b = th.ByteTensor(sub_graph_train_mask_b)
-    sub_test_mask_b = th.ByteTensor(sub_graph_test_mask_b)
+    sub_train_mask_b = th.BoolTensor(sub_graph_train_mask_b)
+    sub_test_mask_b = th.BoolTensor(sub_graph_test_mask_b)
     #sub_g_b = DGLGraph(nx.from_numpy_matrix(sub_graph_g_b))
     
     sub_g_b = nx.from_numpy_matrix(sub_graph_g_b)
