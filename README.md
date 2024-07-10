@@ -10,7 +10,7 @@ I plan to use subtree instead of submodule since subtree gives me a better way t
 ```bash
 git subtree add --prefix=subtree_directory <repository-url> <branch> --squash
 cd subtree_directory
-MAKE CHANGES
+(Make modifications to their source code, and this step is optional).
 git add .
 git commit -am "commit message"
 git push
