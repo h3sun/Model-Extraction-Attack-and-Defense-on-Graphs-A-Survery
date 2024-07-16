@@ -15,3 +15,10 @@ git add .
 git commit -am "commit message"
 git push
 ```
+
+```
+No module named 'scipy.sparse.linalg.eigen.arpack'; 'scipy.sparse.linalg.eigen' is not a package
+
+solution:
+pip install --upgrade scipy
+```
