@@ -18,8 +18,8 @@ cuda = None
 g, features, labels, train_mask, test_mask = load_data(dataset_name)
 # attack0(dataset_name, attack_node_arg, cuda)  # Acc: 0.784 Fidelity: 0.859
 # attack1(dataset_name, attack_node_arg, cuda)  # Acc: 0.161 Fidelity: 0.333
-attack2(dataset_name, attack_node_arg, cuda)  # Acc: 0.748 Fidelity: 0.776
+# attack2(dataset_name, attack_node_arg, cuda)  # Acc: 0.748 Fidelity: 0.776
 # attack3(dataset_name, attack_node_arg, cuda)  # Acc: 0.667 Fidelity: 0.263
-# attack4(dataset_name, attack_node_arg, cuda)  # Acc: 0.155 Fidelity: 0.432
+attack4(dataset_name, attack_node_arg, cuda)  # Acc: 0.155 Fidelity: 0.432
 # attack5(dataset_name, attack_node_arg, cuda)  # Acc: 0.814 Fidelity: 0.105
 # attack6(dataset_name, attack_node_arg, cuda)  # Miss author generated file
