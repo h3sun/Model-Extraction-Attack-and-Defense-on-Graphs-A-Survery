@@ -1,6 +1,6 @@
 ## Environment Setup
 ```
-git clone https://github.com/juyujing/GrOVe.git &&
+git clone l &&
 cd GrOVe &&
 conda env create --file environment.yaml &&
 conda activate grove && 
